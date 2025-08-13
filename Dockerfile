@@ -32,6 +32,8 @@ COPY composer.json composer.lock ./
 COPY artisan ./
 COPY bootstrap/ ./bootstrap/
 COPY config/ ./config/
+COPY routes/ ./routes/           # ✅ ADD THIS LINE
+COPY app/ ./app/                 # ✅ ADD THIS LINE (often needed for providers)
 
 # Now composer install can run Laravel's post-install scripts successfully
 RUN composer install --no-dev --optimize-autoloader --no-interaction
