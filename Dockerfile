@@ -28,12 +28,12 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy composer dependency files
 COPY composer.json composer.lock ./
 
-# ✅ Copy essential Laravel files needed for composer post-install scripts
+# Copy essential Laravel files needed for composer post-install scripts
 COPY artisan ./
 COPY bootstrap/ ./bootstrap/
 COPY config/ ./config/
-COPY routes/ ./routes/           # ✅ ADD THIS LINE
-COPY app/ ./app/                 # ✅ ADD THIS LINE (often needed for providers)
+COPY routes/ ./routes/
+COPY app/ ./app/
 
 # Now composer install can run Laravel's post-install scripts successfully
 RUN composer install --no-dev --optimize-autoloader --no-interaction
