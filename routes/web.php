@@ -6,12 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 
 Route::get('/health', function () {
-    return response()->json([
-        'status' => 'healthy',
-        'app' => config('app.name'),
-        'version' => '1.0.0',
-        'timestamp' => now()
-    ]);
+    return 'OK';
 });
 
 // Guest routes
