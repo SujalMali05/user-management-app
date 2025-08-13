@@ -5,6 +5,15 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'healthy',
+        'app' => config('app.name'),
+        'version' => '1.0.0',
+        'timestamp' => now()
+    ]);
+});
+
 // Guest routes
 Route::middleware('guest')->group(function () {
     Route::get('/', function () { return redirect('/login'); });
