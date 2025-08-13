@@ -3,33 +3,58 @@ set -e
 
 echo "🚀 Starting Laravel application..."
 
-# Create .env file if it doesn't exist
-if [ ! -f .env ]; then
-    echo "📄 Creating .env from .env.example..."
-    cp .env.example .env
-    echo "✅ .env file created"
-fi
-
-# Wait for database
+# Wait for database connection with timeout
 echo "⏳ Waiting for database connection..."
-while ! mysqladmin ping -h"$DB_HOST" -u"$DB_USERNAME" -p"$DB_PASSWORD" --silent; do 
+TIMEOUT=60
+COUNTER=0
+
+while ! mysqladmin ping -h"$DB_HOST" -u"$DB_USERNAME" -p"$DB_PASSWORD" --silent; do
+    if [ $COUNTER -ge $TIMEOUT ]; then
+        echo "❌ Database connection timeout after ${TIMEOUT} seconds"
+        exit 1
+    fi
+    echo "Database not ready, waiting... ($COUNTER/$TIMEOUT)"
     sleep 1
+    COUNTER=$((COUNTER + 1))
 done
+
 echo "✅ Database connection established"
 
-# Generate key ONLY if APP_KEY is not set via environment variable
-if [ -z "$APP_KEY" ]; then
-    echo "🔑 Generating application key..."
+# Only generate APP_KEY if it's not already set and .env doesn't have one
+if ! grep -q "^APP_KEY=base64:" .env 2>/dev/null; then
+    echo "🔑 Generating new application key..."
     php artisan key:generate --force --no-interaction
     echo "✅ Application key generated"
 else
-    echo "✅ Using provided APP_KEY from environment"
+    echo "✅ Using existing APP_KEY"
 fi
 
-# Rest of your script...
-php artisan migrate --force
-php artisan db:seed --force
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-apache2-foreground
+# Run database migrations
+echo "📊 Running database migrations..."
+php artisan migrate --force --no-interaction
+echo "✅ Migrations completed"
+
+# Seed the database
+echo "🌱 Seeding database..."
+php artisan db:seed --force --no-interaction
+echo "✅ Database seeding completed"
+
+# Optimize Laravel application
+echo "⚡ Optimizing Laravel application..."
+php artisan config:cache --no-interaction
+php artisan route:cache --no-interaction
+php artisan view:cache --no-interaction
+echo "✅ Application optimized"
+
+# Set proper permissions
+echo "🔧 Setting file permissions..."
+chown -R www-data:www-data /var/www/html
+chmod -R 755 /var/www/html/storage
+chmod -R 755 /var/www/html/bootstrap/cache
+echo "✅ Permissions set"
+
+echo "🎉 Laravel application ready!"
+echo "🌐 Starting Apache web server..."
+
+# Start Apache in foreground
+exec apache2-foreground

@@ -35,11 +35,15 @@ COPY config/ ./config/
 COPY routes/ ./routes/
 COPY app/ ./app/
 
-# Now composer install can run Laravel's post-install scripts successfully
+# Install composer dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Copy the rest of the application files
 COPY . .
+
+# Create .env file and generate APP_KEY during build
+RUN if [ ! -f .env ]; then cp .env.example .env; fi && \
+    php artisan key:generate --force --no-interaction
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
