@@ -6,7 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 
 Route::get('/health', function () {
-    return 'Done';
+    return 'OK';
 });
 
 // Guest routes
