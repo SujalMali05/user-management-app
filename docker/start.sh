@@ -3,19 +3,23 @@ set -e
 
 echo "🚀 Starting Laravel application..."
 
-# Wait for database connection with timeout
+# Wait for database connection with increased timeout
 echo "⏳ Waiting for database connection..."
-TIMEOUT=60
+TIMEOUT=300  # Increased to 5 minutes for MySQL 8.0 initialization
 COUNTER=0
 
 while ! mysqladmin ping -h"$DB_HOST" -u"$DB_USERNAME" -p"$DB_PASSWORD" --silent; do
     if [ $COUNTER -ge $TIMEOUT ]; then
         echo "❌ Database connection timeout after ${TIMEOUT} seconds"
+        echo "📋 Showing database connection details for debugging:"
+        echo "DB_HOST: $DB_HOST"
+        echo "DB_USERNAME: $DB_USERNAME"
+        echo "DB_DATABASE: $DB_DATABASE"
         exit 1
     fi
     echo "Database not ready, waiting... ($COUNTER/$TIMEOUT)"
-    sleep 1
-    COUNTER=$((COUNTER + 1))
+    sleep 2  # Check every 2 seconds instead of 1 (reduces log spam)
+    COUNTER=$((COUNTER + 2))
 done
 
 echo "✅ Database connection established"
