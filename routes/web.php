@@ -1,12 +1,50 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;  // Add this import for database testing
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 
 Route::get('/health', function () {
     return 'OK';
+});
+
+// Database test route - Add this new route
+Route::get('/db-test', function () {
+    try {
+        // Test database connection
+        $pdo = DB::connection()->getPdo();
+        
+        // Get database info
+        $dbName = DB::connection()->getDatabaseName();
+        $tables = DB::select('SHOW TABLES');
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Database connected successfully!',
+            'database' => $dbName,
+            'host' => config('database.connections.mysql.host'),
+            'port' => config('database.connections.mysql.port'),
+            'username' => config('database.connections.mysql.username'),
+            'tables_count' => count($tables),
+            'tables' => array_map(function($table) { 
+                return array_values((array)$table)[0]; 
+            }, $tables),
+            'timestamp' => now()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Database connection failed: ' . $e->getMessage(),
+            'config' => [
+                'host' => config('database.connections.mysql.host'),
+                'port' => config('database.connections.mysql.port'),
+                'database' => config('database.connections.mysql.database'),
+                'username' => config('database.connections.mysql.username')
+            ]
+        ], 500);
+    }
 });
 
 // Guest routes
@@ -30,5 +68,3 @@ Route::middleware('auth')->group(function () {
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
 });
-
-
